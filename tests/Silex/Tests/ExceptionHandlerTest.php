@@ -250,6 +250,29 @@ class ExceptionHandlerTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testExceptionHandlerShouldNotCatchExceptionIfDisabled()
+    {
+        $app = new Application();
+ 
+        $app->match('/foo', function () {
+            throw new \RuntimeException('foo exception');
+        });
+ 
+        $app->error(function ($e) {
+            throw new \RuntimeException('foo exception handler exception');
+        });
+ 
+        $app['exception_handler']->disable();
+ 
+        try {
+            $request = Request::create('/foo');
+            $app->handle($request);
+            $this->fail('->handle() should not catch exceptions thrown from an error handler');
+        } catch (\RuntimeException $e) {
+            $this->assertEquals('foo exception', $e->getMessage());
+        }
+    }
+
     public function testRemoveExceptionHandlerAfterDispatcherAccess()
     {
         $app = new Application();
